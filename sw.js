@@ -11,7 +11,7 @@
  * werker ruimt daarom alleen caches op die met 'denkwerk-' beginnen. Maak daar
  * nooit "alle oude caches" van — dan gooi je die van de andere apps weg.
  */
-const VERSIE = 'denkwerk-34ae3c9c1a';
+const VERSIE = 'denkwerk-1b160e657d';
 const BESTANDEN = ['./', './index.html', './data.json', './manifest.webmanifest',
                    './icoon-180.png', './icoon-192.png', './icoon-512.png'];
 
@@ -38,7 +38,12 @@ self.addEventListener('fetch', (e) => {
   e.respondWith((async () => {
     const cache = await caches.open(VERSIE);
     try {
-      const vers = await fetch(verzoek);
+      // 'no-cache': eerst bij de server navragen, ook als de browser het
+      // bestand nog bewaard heeft. GitHub Pages zegt "tien minuten bewaren",
+      // en zonder dit kreeg je na een nieuwe versie nog zo lang de oude. Is er
+      // niets veranderd, dan antwoordt de server met een kaal "304" en kost
+      // het vrijwel niets.
+      const vers = await fetch(verzoek, { cache: 'no-cache' });
       if (vers.ok) cache.put(verzoek, vers.clone());
       return vers;
     } catch (fout) {

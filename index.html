@@ -270,7 +270,7 @@ details.herkomst p { margin: 0 0 8px; }
  * allemaal met 'denkwerk' en de servicewerker ruimt alleen zijn eigen caches
  * op.
  */
-const VERSIE = '34ae3c9c1a';
+const VERSIE = '1b160e657d';
 const scherm = document.getElementById('scherm');
 const zoekveld = document.getElementById('zoek');
 
@@ -718,7 +718,11 @@ scherm.addEventListener('change', (e) => {
 });
 
 // ---------------------------------------------------------------- starten
-fetch('data.json').then((r) => {
+// 'no-cache' betekent: wel bewaren, maar eerst bij GitHub navragen of het nog
+// klopt. GitHub Pages laat een browser elk bestand tien minuten bewaren, en
+// zonder deze vraag zag je na een nieuwe ronde nog tien minuten de oude
+// passages (14 november 2026, bij Heidegger en Safranski).
+fetch('data.json', { cache: 'no-cache' }).then((r) => {
   if (!r.ok) throw new Error(r.status);
   return r.json();
 }).then((data) => {
