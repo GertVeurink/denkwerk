@@ -157,6 +157,9 @@ details.herkomst p { margin: 0 0 8px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chips .chip { font-size: 14px; padding: 8px 12px; background: var(--kaart); color: var(--inkt); }
 .chips .chip small { color: var(--zacht); margin-left: 4px; }
+/* Lange werktitels mogen afbreken, anders lopen ze over de rand van het scherm. */
+.chips .chip { max-width: 100%; white-space: normal; line-height: 1.25; }
+.chips .chip.aan { background: var(--accent); border-color: var(--accent); color: var(--bg); }
 .rij {
   display: flex; align-items: center; gap: 14px; padding: 14px 16px; color: var(--inkt);
   background: var(--kaart); border: 1px solid var(--lijn); border-radius: 14px; margin-bottom: 10px;
@@ -263,7 +266,7 @@ details.herkomst p { margin: 0 0 8px; }
  * allemaal met 'denkwerk' en de servicewerker ruimt alleen zijn eigen caches
  * op.
  */
-const VERSIE = '01b8bf2df5';
+const VERSIE = '806f637b1b';
 const scherm = document.getElementById('scherm');
 const zoekveld = document.getElementById('zoek');
 
