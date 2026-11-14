@@ -11,7 +11,7 @@
  * werker ruimt daarom alleen caches op die met 'denkwerk-' beginnen. Maak daar
  * nooit "alle oude caches" van — dan gooi je die van de andere apps weg.
  */
-const VERSIE = 'denkwerk-186ede013d';
+const VERSIE = 'denkwerk-ffb60ee9d2';
 const BESTANDEN = ['./', './index.html', './data.json', './manifest.webmanifest',
                    './icoon-180.png', './icoon-192.png', './icoon-512.png'];
 
