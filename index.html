@@ -190,6 +190,9 @@ details.herkomst p { margin: 0 0 8px; }
 .idee span { color: var(--zacht); }
 .werk { padding: 9px 0; border-top: 1px solid var(--lijn); font-size: 15px; }
 .werk:first-of-type { border-top: 0; }
+.lit { padding-top: 6px; padding-bottom: 6px; }
+.lit .werk > a { color: var(--inkt); }
+.lit .nog { color: var(--zacht); font-style: italic; }
 .werk em { font-family: var(--schreef); font-size: 16.5px; font-style: normal; font-weight: 600; }
 .werk small { color: var(--zacht); display: block; }
 .nooit blockquote { margin: 0 0 6px; font: italic 17px/1.5 var(--schreef); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--waarschuw) 60%, transparent); }
@@ -218,7 +221,7 @@ details.herkomst p { margin: 0 0 8px; }
   border-top: 1px solid var(--lijn);
   padding-bottom: env(safe-area-inset-bottom);
 }
-.onder .binnen { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+.onder .binnen { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
 .onder a { display: grid; justify-items: center; gap: 3px; padding: 9px 4px 8px; color: var(--zacht); font-size: 11.5px; }
 .onder a svg { width: 23px; height: 23px; }
 .onder a.aan { color: var(--accent); font-weight: 600; }
@@ -245,6 +248,7 @@ details.herkomst p { margin: 0 0 8px; }
   <a href="#/" data-tab="ontdek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Ontdek</a>
   <a href="#/denkers" data-tab="denkers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 20c1-4 4-6 7.5-6s6.500 2 7.500 6"/></svg>Denkers</a>
   <a href="#/themas" data-tab="themas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h13"/></svg>Thema's</a>
+  <a href="#/literatuur" data-tab="literatuur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.500C10 5 7 4.500 3.500 5v13c3.500-.500 6.500 0 8.500 1.500 2-1.500 5-2 8.500-1.500V5C17 4.500 14 5 12 6.500z"/><path d="M12 6.500v13"/></svg>Literatuur</a>
   <a href="#/bewaard" data-tab="bewaard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.500 2.600 5.400 5.900.800-4.300 4.100 1.100 5.900L12 16.900l-5.300 2.800 1.100-5.900-4.300-4.100 5.900-.800z"/></svg>Bewaard</a>
 </div></nav>
 
@@ -266,7 +270,7 @@ details.herkomst p { margin: 0 0 8px; }
  * allemaal met 'denkwerk' en de servicewerker ruimt alleen zijn eigen caches
  * op.
  */
-const VERSIE = '0d16bd18e8';
+const VERSIE = 'd548f9a8b2';
 const scherm = document.getElementById('scherm');
 const zoekveld = document.getElementById('zoek');
 
@@ -425,9 +429,14 @@ function schermOntdek() {
   return h;
 }
 
+// Op tijd zetten gaat op het geboortejaar. Van een paar levende denkers is dat
+// niet zeker bekend; die dragen een 'sorteerjaar' (het jaar van hun werk) en
+// geen verzonnen geboortejaar.
+function tijdvan(d) { return d.geboren != null ? d.geboren : d.sorteerjaar; }
+
 function denkerRij(d) {
   return '<a class="rij" href="#/denker/' + d.id + '"><i class="stip" style="background:' + esc(GROEP[d.groep].kleur) + '"></i>' +
-    '<span class="midden"><b>' + esc(d.naam) + '</b><span>' + esc(d.jaren) + (d.gestorven ? '' : ' – heden') + ' · ' + esc(GROEP[d.groep].naam.split(' — ')[0]) + '</span></span>' +
+    '<span class="midden"><b>' + esc(d.naam) + '</b><span>' + esc(d.jaren) + (d.gestorven || d.geboren == null ? '' : ' – heden') + ' · ' + esc(GROEP[d.groep].naam.split(' — ')[0]) + '</span></span>' +
     '<span class="tel">' + d.passages.length + '</span></a>';
 }
 
@@ -437,7 +446,7 @@ function schermDenkers() {
     '<button data-doe="sorteer" data-op="groep" class="' + (ui.denkersOp === 'groep' ? 'aan' : '') + '">Per groep</button>' +
     '<button data-doe="sorteer" data-op="tijd" class="' + (ui.denkersOp === 'tijd' ? 'aan' : '') + '">Op tijd</button></div>';
   if (ui.denkersOp === 'tijd') {
-    h += '<div style="margin-top:16px">' + D.denkers.slice().sort((a, b) => a.geboren - b.geboren).map(denkerRij).join('') + '</div>';
+    h += '<div style="margin-top:16px">' + D.denkers.slice().sort((a, b) => tijdvan(a) - tijdvan(b)).map(denkerRij).join('') + '</div>';
   } else {
     D.groepen.forEach((g) => {
       const leden = D.denkers.filter((d) => d.groep === g.id);
@@ -455,7 +464,7 @@ function schermDenker(id, tab, werkId) {
   tab = tab === 'achtergrond' ? 'achtergrond' : 'passages';
   let h = '<a class="terug" href="#/denkers">‹ Denkers</a>' +
     '<div class="denkerkop"><h1 class="titel">' + esc(d.naam) + '</h1>' +
-    '<div class="jaren">' + esc(d.jaren) + (d.gestorven ? '' : ' – heden') + ' · ' + esc(GROEP[d.groep].naam) + '</div>' +
+    '<div class="jaren">' + esc(d.jaren) + (d.gestorven || d.geboren == null ? '' : ' – heden') + ' · ' + esc(GROEP[d.groep].naam) + '</div>' +
     '<p class="kort">' + esc(d.kort) + '</p></div>' +
     '<div class="wissel"><a href="#/denker/' + d.id + '" class="' + (tab === 'passages' ? 'aan' : '') + '">Passages</a>' +
     '<a href="#/denker/' + d.id + '/achtergrond" class="' + (tab === 'achtergrond' ? 'aan' : '') + '">Achtergrond</a></div>';
@@ -503,7 +512,7 @@ function schermThemas() {
 function schermThema(id) {
   const t = THEMA[id];
   if (!t) return nietGevonden();
-  const lijst = PASSAGES.filter((p) => p.themas.includes(id)).sort((a, b) => a.denker.geboren - b.denker.geboren);
+  const lijst = PASSAGES.filter((p) => p.themas.includes(id)).sort((a, b) => tijdvan(a.denker) - tijdvan(b.denker));
   return '<a class="terug" href="#/themas">‹ Thema\'s</a><h1 class="titel">' + esc(t.naam) + '</h1>' +
     '<p class="onder-titel">' + lijst.length + (lijst.length === 1 ? ' passage' : ' passages') + ', van oud naar nieuw</p>' +
     lijst.map((p) => kaart(p)).join('');
@@ -564,6 +573,46 @@ function nietGevonden() {
   return '<div class="leeg"><b>Dit bestaat niet (meer)</b><a href="#/">Terug naar het begin</a></div>';
 }
 
+// ---------------------------------------------------------------- literatuur
+// Alle werken op één plek: die van de denkers (uit hun eigen bestand) en de
+// leeslijst (bron/leeslijst.json) van schrijvers die nog geen denker zijn. Per
+// regel alleen titel, jaar, wie en een link — Gert wilde het kaal. Een werk
+// zonder passages krijgt "nog niet geciteerd", zodat te zien is wat gelezen
+// kan worden en wat al in de app zit.
+function schermLiteratuur() {
+  const jaar = (w) => parseInt(w.jaar, 10) || 0;
+  let h = '', totaal = 0, nog = 0;
+  D.groepen.forEach((g) => {
+    const rijen = [];
+    D.denkers.filter((d) => d.groep === g.id).sort((a, b) => tijdvan(a) - tijdvan(b)).forEach((d) => {
+      d.werken.slice().sort((a, b) => jaar(a) - jaar(b)).forEach((w) => {
+        const n = d.passages.filter((p) => p.werk === w.id).length;
+        totaal++; if (!n) nog++;
+        rijen.push(literatuurRegel('<a href="#/denker/' + d.id + '/achtergrond">' + esc(d.naam) + '</a>',
+          w, n ? '#/denker/' + d.id + '/werk/' + w.id : ''));
+      });
+    });
+    (D.leeslijst || []).filter((w) => w.groep === g.id).sort((a, b) => jaar(a) - jaar(b)).forEach((w) => {
+      totaal++; nog++;
+      rijen.push(literatuurRegel(esc(w.auteur), w, ''));
+    });
+    if (!rijen.length) return;
+    h += '<h2 class="groepkop"><i style="background:' + esc(g.kleur) + '"></i>' + esc(g.naam) + '</h2>' +
+      '<div class="blok lit">' + rijen.join('') + '</div>';
+  });
+  return '<h1 class="titel">Literatuur</h1><p class="onder-titel">' + totaal + ' werken, waarvan ' + nog +
+    ' nog niet geciteerd</p>' + h;
+}
+
+function literatuurRegel(wie, w, naarPassages) {
+  const titel = '<em>' + esc(w.titel) + '</em>';
+  const extra = [wie];
+  if (!naarPassages) extra.push('<span class="nog">nog niet geciteerd</span>');
+  if (w.link) extra.push('<a href="' + esc(w.link) + '" target="_blank" rel="noopener">online</a>');
+  return '<div class="werk">' + (naarPassages ? '<a href="' + naarPassages + '">' + titel + '</a>' : titel) +
+    ' · ' + esc(w.jaar) + '<small>' + extra.join(' · ') + '</small></div>';
+}
+
 // ---------------------------------------------------------------- welk scherm
 function teken(houScroll) {
   if (!D) return;
@@ -577,6 +626,7 @@ function teken(houScroll) {
     case 'themas': h = schermThemas(); tab = 'themas'; break;
     case 'thema': h = schermThema(delen[1]); tab = 'themas'; break;
     case 'bewaard': h = schermBewaard(); tab = 'bewaard'; break;
+    case 'literatuur': h = schermLiteratuur(); tab = 'literatuur'; break;
     case 'zoek': h = schermZoek(delen.slice(1).join('/')); tab = ''; break;
     case 'over': h = schermOver(); break;
     default: h = schermOntdek();
