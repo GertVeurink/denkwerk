@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Denkwerk</title>
+<meta name="description" content="Passages van grote denkers, doorzoekbaar en met bron.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icoon-180.png">
+<meta name="theme-color" content="#faf8f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121817" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Denkwerk">
+<style>
+/*
+ * Denkwerk — dit bestand is het sjabloon. publiceren/index.html wordt hieruit
+ * gemaakt door bron/bouw.py; bewerk dus dit bestand en niet dat.
+ *
+ * Twee lettertypen met elk een eigen taak: een schreefletter voor wat de
+ * denkers zeggen, een schreefloze voor alles wat de app zegt. Zo zie je in
+ * één oogopslag wat citaat is en wat bediening.
+ */
+:root {
+  --bg: #faf8f4;
+  --kaart: #ffffff;
+  --inkt: #1c2827;
+  --zacht: #5f6d6b;
+  --lijn: #e7e2d9;
+  --accent: #0e7c6b;
+  --accent-inkt: #0a5c50;
+  --accent-zacht: #e2f1ed;
+  --ster: #c98a12;
+  --waarschuw: #9a5b13;
+  --waarschuw-zacht: #f8ecd9;
+  --schaduw: 0 1px 2px rgba(28, 40, 39, .05), 0 6px 20px rgba(28, 40, 39, .05);
+  --schreef: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --kaal: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121817;
+    --kaart: #1a2322;
+    --inkt: #e9eeec;
+    --zacht: #9babA8;
+    --lijn: #2b3735;
+    --accent: #55cdb4;
+    --accent-inkt: #8be0cd;
+    --accent-zacht: #17332e;
+    --ster: #e9b949;
+    --waarschuw: #e0b06a;
+    --waarschuw-zacht: #33290f;
+    --schaduw: none;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--inkt);
+  font: 16px/1.5 var(--kaal);
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+a { color: var(--accent-inkt); text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+h1, h2, h3 { font-family: var(--schreef); font-weight: 600; line-height: 1.2; margin: 0; }
+
+/* --- kop met het zoekveld: blijft staan, want zoeken kan vanaf elk scherm --- */
+.kop {
+  position: sticky; top: 0; z-index: 5;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--lijn);
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+}
+.kop .binnen { max-width: 720px; margin: 0 auto; display: flex; gap: 12px; align-items: center; }
+.merk { font: 600 20px/1 var(--schreef); color: var(--inkt); letter-spacing: -.01em; flex: none; }
+.merk span { color: var(--accent); }
+.zoekvak { position: relative; flex: 1; min-width: 0; }
+.zoekvak svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: var(--zacht); pointer-events: none; }
+#zoek {
+  width: 100%; font: inherit; color: var(--inkt);
+  background: var(--kaart); border: 1px solid var(--lijn); border-radius: 999px;
+  padding: 9px 14px 9px 36px; outline: none; -webkit-appearance: none; appearance: none;
+}
+#zoek:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-zacht); }
+#zoek::placeholder { color: var(--zacht); }
+
+main { max-width: 720px; margin: 0 auto; padding: 20px 16px 8px; }
+.titel { font-size: 28px; margin: 6px 0 4px; letter-spacing: -.015em; }
+.onder-titel { color: var(--zacht); margin: 0 0 20px; }
+.tussenkop {
+  font: 600 12px/1 var(--kaal); letter-spacing: .09em; text-transform: uppercase;
+  color: var(--zacht); margin: 30px 0 12px; display: flex; justify-content: space-between; align-items: baseline;
+}
+.tussenkop a { letter-spacing: 0; text-transform: none; font-weight: 500; font-size: 14px; }
+.terug { display: inline-flex; align-items: center; gap: 4px; color: var(--zacht); font-size: 14px; margin-bottom: 6px; }
+
+/* --- een passage --- */
+.passage {
+  background: var(--kaart); border: 1px solid var(--lijn); border-radius: 16px;
+  padding: 18px 18px 12px; margin: 0 0 14px; box-shadow: var(--schaduw);
+}
+.passage blockquote {
+  margin: 0; font: 18px/1.55 var(--schreef); color: var(--inkt);
+  text-wrap: pretty; hanging-punctuation: first;
+}
+.passage.groot { padding: 26px 22px 14px; border-color: transparent; background: var(--accent-zacht); box-shadow: none; }
+.passage.groot blockquote { font-size: 23px; line-height: 1.42; }
+.passage.groot .voet { border-top-color: color-mix(in srgb, var(--accent) 22%, transparent); }
+mark { background: color-mix(in srgb, var(--ster) 32%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+.wie { margin: 12px 0 0; font-size: 14.5px; color: var(--zacht); }
+.wie a { font-weight: 600; color: var(--inkt); }
+.toelichting { margin: 10px 0 0; font-size: 14.5px; color: var(--zacht); padding-left: 12px; border-left: 2px solid var(--lijn); }
+.voet {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--lijn);
+}
+.voet .labels { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; padding-top: 5px; }
+.voet .acties { flex: none; display: flex; }
+.chip {
+  display: inline-block; font-size: 13px; line-height: 1; padding: 6px 10px; border-radius: 999px;
+  background: transparent; border: 1px solid var(--lijn); color: var(--zacht); white-space: nowrap;
+}
+a.chip:active { background: var(--accent-zacht); }
+.chip.aan { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.knop-rond {
+  width: 36px; height: 36px; border-radius: 50%; border: 0; background: transparent;
+  display: inline-grid; place-items: center; color: var(--zacht); padding: 0;
+}
+.knop-rond svg { width: 20px; height: 20px; }
+.knop-rond:active { background: var(--accent-zacht); }
+.knop-rond.aan { color: var(--ster); }
+.knop-rond.aan svg { fill: currentColor; }
+.knop-rond.heeft { color: var(--accent); }
+
+details.herkomst { margin-top: 2px; font-size: 14px; color: var(--zacht); }
+details.herkomst summary {
+  list-style: none; cursor: pointer; padding: 8px 0 6px; display: flex; align-items: center; gap: 7px;
+}
+details.herkomst summary::-webkit-details-marker { display: none; }
+details.herkomst summary::after { content: "›"; transition: transform .15s; font-size: 16px; }
+details.herkomst[open] summary::after { transform: rotate(90deg); }
+.status { display: inline-flex; align-items: center; gap: 5px; font-weight: 500; }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+.status.geheugen i { background: transparent; border: 1.5px solid var(--zacht); }
+.status.parafrase { color: var(--waarschuw); }
+.status.parafrase i { background: var(--waarschuw); }
+.bronzin { font: italic 15.5px/1.5 var(--schreef); color: var(--inkt); margin: 4px 0 10px; padding: 10px 12px; background: var(--bg); border-radius: 10px; }
+details.herkomst p { margin: 0 0 8px; }
+.notitie { margin-top: 8px; }
+.notitie textarea {
+  width: 100%; min-height: 70px; resize: vertical; font: 15px/1.45 var(--kaal); color: var(--inkt);
+  background: var(--bg); border: 1px solid var(--lijn); border-radius: 10px; padding: 10px 12px; outline: none;
+}
+.notitie textarea:focus { border-color: var(--accent); }
+
+/* --- lijsten en tegels --- */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips .chip { font-size: 14px; padding: 8px 12px; background: var(--kaart); color: var(--inkt); }
+.chips .chip small { color: var(--zacht); margin-left: 4px; }
+.rij {
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px; color: var(--inkt);
+  background: var(--kaart); border: 1px solid var(--lijn); border-radius: 14px; margin-bottom: 10px;
+}
+.rij:active { border-color: var(--accent); }
+.rij .stip { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.rij .midden { flex: 1; min-width: 0; }
+.rij b { font: 600 18px/1.25 var(--schreef); display: block; color: var(--inkt); }
+.rij span { color: var(--zacht); font-size: 14px; display: block; }
+.rij .tel { color: var(--zacht); font-size: 13px; flex: none; font-variant-numeric: tabular-nums; }
+.groepkop { display: flex; align-items: center; gap: 9px; margin: 26px 0 4px; font: 600 19px/1.2 var(--schreef); }
+.groepkop i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.groepsub { color: var(--zacht); font-size: 14px; margin: 0 0 12px 19px; }
+.wissel { display: inline-flex; background: var(--kaart); border: 1px solid var(--lijn); border-radius: 999px; padding: 3px; margin: 0 0 6px; }
+.wissel button, .wissel a { border: 0; background: transparent; padding: 7px 14px; border-radius: 999px; font-size: 14px; color: var(--zacht); }
+.wissel .aan { background: var(--accent); color: var(--bg); font-weight: 600; }
+
+.denkerkop { margin-bottom: 14px; }
+.denkerkop .jaren { color: var(--zacht); font-size: 15px; margin-top: 4px; }
+.denkerkop .kort { font: 18px/1.5 var(--schreef); margin: 12px 0 0; }
+.blok { background: var(--kaart); border: 1px solid var(--lijn); border-radius: 16px; padding: 18px; margin-bottom: 14px; }
+.blok h3 { font-size: 18px; margin-bottom: 8px; }
+.blok p { margin: 0 0 10px; }
+.blok p:last-child { margin-bottom: 0; }
+.idee { padding: 10px 0; border-top: 1px solid var(--lijn); }
+.idee:first-of-type { border-top: 0; padding-top: 0; }
+.idee b { display: block; font-family: var(--schreef); font-size: 17px; }
+.idee span { color: var(--zacht); }
+.werk { padding: 9px 0; border-top: 1px solid var(--lijn); font-size: 15px; }
+.werk:first-of-type { border-top: 0; }
+.werk em { font-family: var(--schreef); font-size: 16.5px; font-style: normal; font-weight: 600; }
+.werk small { color: var(--zacht); display: block; }
+.nooit blockquote { margin: 0 0 6px; font: italic 17px/1.5 var(--schreef); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--waarschuw) 60%, transparent); }
+.nooit p { color: var(--zacht); font-size: 14.5px; }
+.klein { color: var(--zacht); font-size: 14px; }
+.leeg { text-align: center; color: var(--zacht); padding: 40px 10px; }
+.leeg b { display: block; font: 600 20px/1.3 var(--schreef); color: var(--inkt); margin-bottom: 6px; }
+.knop {
+  display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--lijn); background: var(--kaart);
+  border-radius: 999px; padding: 9px 16px; font-size: 14.5px; color: var(--inkt);
+}
+.knop.vol { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+.knoppen { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.melding {
+  position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  background: var(--inkt); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: 14px;
+  opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 9; white-space: nowrap;
+}
+.melding.zichtbaar { opacity: 1; }
+
+/* --- de balk onderin --- */
+.onder {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
+  background: color-mix(in srgb, var(--kaart) 92%, transparent);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border-top: 1px solid var(--lijn);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.onder .binnen { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+.onder a { display: grid; justify-items: center; gap: 3px; padding: 9px 4px 8px; color: var(--zacht); font-size: 11.5px; }
+.onder a svg { width: 23px; height: 23px; }
+.onder a.aan { color: var(--accent); font-weight: 600; }
+@media (min-width: 760px) {
+  main { padding-top: 32px; }
+  .titel { font-size: 34px; }
+  .passage.groot blockquote { font-size: 27px; }
+}
+</style>
+</head>
+<body>
+<header class="kop"><div class="binnen">
+  <a class="merk" href="#/">Denk<span>werk</span></a>
+  <label class="zoekvak">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="zoek" type="search" placeholder="Zoek in passages" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+  </label>
+</div></header>
+
+<main id="scherm"><p class="leeg">Even laden…</p></main>
+<div class="melding" id="melding"></div>
+
+<nav class="onder"><div class="binnen">
+  <a href="#/" data-tab="ontdek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Ontdek</a>
+  <a href="#/denkers" data-tab="denkers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 20c1-4 4-6 7.5-6s6.500 2 7.500 6"/></svg>Denkers</a>
+  <a href="#/themas" data-tab="themas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h13"/></svg>Thema's</a>
+  <a href="#/bewaard" data-tab="bewaard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.500 2.600 5.400 5.900.800-4.300 4.100 1.100 5.900L12 16.900l-5.300 2.800 1.100-5.900-4.300-4.100 5.900-.800z"/></svg>Bewaard</a>
+</div></nav>
+
+<script>
+'use strict';
+/*
+ * Denkwerk — de app.
+ *
+ * Alle inhoud komt uit data.json, dat bron/bouw.py maakt uit de bestanden in
+ * bron/denkers/. Hier staat dus geen enkele denker of passage in de code: komt
+ * er een denker bij, dan verandert alleen data.json.
+ *
+ * Wat de gebruiker zelf toevoegt (sterren en aantekeningen) staat in de
+ * browser onder 'denkwerk.v1' en hangt aan het nummer van een passage. Die
+ * nummers veranderen daarom nooit.
+ *
+ * Let op het adres: gertveurink.github.io is ook het adres van Dagstart en De
+ * Dag. Voor de browser is dat één adres, dus de sleutels hier beginnen
+ * allemaal met 'denkwerk' en de servicewerker ruimt alleen zijn eigen caches
+ * op.
+ */
+const VERSIE = 'ac434adbd7';
+const scherm = document.getElementById('scherm');
+const zoekveld = document.getElementById('zoek');
+
+let D = null;            // alles uit data.json
+let PASSAGES = [];       // alle passages, elk met zijn denker en werk eraan
+const OP_ID = {};        // passage op nummer
+const DENKER = {};       // denker op id
+const THEMA = {};        // thema op id
+const GROEP = {};        // groep op id
+
+// ---------------------------------------------------------------- opslag
+function lees(sleutel, anders) {
+  try { return Object.assign(anders, JSON.parse(localStorage.getItem(sleutel) || '{}')); }
+  catch (e) { return anders; }
+}
+function schrijf(sleutel, waarde) {
+  try { localStorage.setItem(sleutel, JSON.stringify(waarde)); } catch (e) {}
+}
+let st = lees('denkwerk.v1', { sterren: {}, notities: {} });
+let ui = lees('denkwerk.ui', { denkersOp: 'groep' });
+const bewaar = () => schrijf('denkwerk.v1', st);
+
+// ---------------------------------------------------------------- hulpjes
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g,
+  (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// Zoeken trekt zich niets aan van hoofdletters en accenten: "konigsberg"
+// vindt Königsberg.
+const kaal = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+let meldTimer = 0;
+function meld(tekst) {
+  const m = document.getElementById('melding');
+  m.textContent = tekst; m.classList.add('zichtbaar');
+  clearTimeout(meldTimer);
+  meldTimer = setTimeout(() => m.classList.remove('zichtbaar'), 1800);
+}
+
+// Elke dag dezelfde passage, voor iedereen die de app die dag opent.
+function dagGetal() {
+  const d = new Date(), s = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+const STATUS = {
+  gecontroleerd: ['Gecontroleerd', 'De bronzin staat letterlijk in de tekst van het werk; dat wordt bij elke bouw van de app nagerekend.'],
+  geheugen: ['Niet nagekeken', 'Met bron en vindplaats, maar niet tegen de tekst zelf gehouden. Zoek het na voordat je het aanhaalt.'],
+  parafrase: ['Parafrase', 'De gedachte is van de denker, de woorden niet.']
+};
+
+// ---------------------------------------------------------------- inladen
+function verwerk(data) {
+  D = data;
+  D.groepen.forEach((g) => { GROEP[g.id] = g; });
+  D.themas.forEach((t) => { THEMA[t.id] = t; t.aantal = 0; });
+  PASSAGES = [];
+  D.denkers.forEach((d) => {
+    DENKER[d.id] = d;
+    const werken = {};
+    d.werken.forEach((w) => { werken[w.id] = w; });
+    d.passages.forEach((p) => {
+      p.denker = d; p.werkObj = werken[p.werk];
+      p.themas.forEach((t) => { THEMA[t].aantal++; });
+      // Eén tekst om in te zoeken: de passage zelf, wie het zei, waar, en de
+      // thema's. De bronzin doet ook mee, zodat je een Engels of Duits citaat
+      // dat je half kent toch terugvindt.
+      p.zoek = kaal([p.tekst, d.naam, p.werkObj.titel, p.plaats, p.toelichting || '',
+        p.themas.map((t) => THEMA[t].naam).join(' '), p.bron || ''].join(' \n '));
+      p.zoekTekst = kaal(p.tekst);
+      OP_ID[p.id] = p;
+      PASSAGES.push(p);
+    });
+  });
+}
+
+// ---------------------------------------------------------------- een passage tekenen
+const ICOON = {
+  ster: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m12 3.500 2.600 5.400 5.900.800-4.300 4.100 1.100 5.900L12 16.900l-5.300 2.800 1.100-5.900-4.300-4.100 5.900-.800z"/></svg>',
+  kopie: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.500"/><path d="M5.500 15H5a1.500 1.500 0 0 1-1.500-1.500v-8A1.500 1.500 0 0 1 5 4h8a1.500 1.500 0 0 1 1.500 1.500V6"/></svg>',
+  pen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.500 6.500 4 4"/></svg>'
+};
+
+function markeer(tekst, woorden) {
+  let uit = esc(tekst);
+  if (!woorden || !woorden.length) return uit;
+  // Markeren gebeurt op de letters zoals ze er staan. Een woord met een
+  // accent erin dat zonder is ingetypt blijft dan ongemarkeerd; gevonden is
+  // het wel.
+  const patroon = woorden.filter((w) => w.length > 1)
+    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  if (!patroon) return uit;
+  return uit.replace(new RegExp('(' + patroon + ')', 'gi'), '<mark>$1</mark>');
+}
+
+function vindplaats(p) {
+  const w = p.werkObj;
+  return esc(w.titel) + ' (' + esc(w.jaar) + ')' + (p.plaats ? ', ' + esc(p.plaats) : '');
+}
+
+function kaart(p, opt) {
+  opt = opt || {};
+  const w = p.werkObj, s = STATUS[p.status];
+  const ster = !!st.sterren[p.id], notitie = st.notities[p.id] || '';
+  const vertaald = w.taal !== 'nl' && p.status !== 'parafrase';
+  let herkomst = '';
+  if (p.bron) herkomst += '<p class="bronzin" lang="' + esc(w.taal) + '">' + esc(p.bron) + '</p>';
+  herkomst += '<p>' + (p.status === 'parafrase' ? 'Geen citaat maar een weergave in eigen woorden.'
+    : vertaald ? 'Vertaling: Claude, naar ' + esc(w.herkomst) + '. Dit is een werkvertaling, niet de gepubliceerde.'
+    : 'Letterlijk uit ' + esc(w.herkomst) + '.') + '</p>';
+  herkomst += '<p><b>' + s[0] + '.</b> ' + s[1] + '</p>';
+  if (w.oorspronkelijk) herkomst += '<p>Oorspronkelijke titel: <i>' + esc(w.oorspronkelijk) + '</i></p>';
+  if (w.link) herkomst += '<p><a href="' + esc(w.link) + '" target="_blank" rel="noopener">Naar de volledige tekst ›</a></p>';
+
+  return '<article class="passage' + (opt.groot ? ' groot' : '') + '" data-id="' + p.id + '">' +
+    '<blockquote>' + markeer(p.tekst, opt.woorden) + '</blockquote>' +
+    '<p class="wie">' + (opt.zonderDenker ? '' : '<a href="#/denker/' + p.denker.id + '">' + esc(p.denker.naam) + '</a> · ') +
+      vindplaats(p) + '</p>' +
+    (p.toelichting ? '<p class="toelichting">' + esc(p.toelichting) + '</p>' : '') +
+    '<div class="voet"><div class="labels">' +
+      p.themas.map((t) => '<a class="chip" href="#/thema/' + t + '">' + esc(THEMA[t].naam) + '</a>').join('') +
+      '</div><div class="acties">' +
+      '<button class="knop-rond' + (notitie ? ' heeft' : '') + '" data-doe="notitie" aria-label="Aantekening">' + ICOON.pen + '</button>' +
+      '<button class="knop-rond" data-doe="kopie" aria-label="Kopiëren">' + ICOON.kopie + '</button>' +
+      '<button class="knop-rond' + (ster ? ' aan' : '') + '" data-doe="ster" aria-label="Bewaren" aria-pressed="' + ster + '">' + ICOON.ster + '</button>' +
+    '</div></div>' +
+    '<div class="notitie"' + (notitie || opt.notitieOpen ? '' : ' hidden') + '><textarea placeholder="Je eigen aantekening bij deze passage">' + esc(notitie) + '</textarea></div>' +
+    '<details class="herkomst"><summary><span class="status ' + p.status + '"><i></i>' + s[0] + '</span> · Bron en herkomst</summary>' + herkomst + '</details>' +
+  '</article>';
+}
+
+function kopieTekst(p) {
+  const w = p.werkObj;
+  let t = '“' + p.tekst + '”\n— ' + p.denker.naam + ', ' + w.titel + ' (' + w.jaar + ')' + (p.plaats ? ', ' + p.plaats : '');
+  if (p.status === 'parafrase') t += ' [parafrase]';
+  else if (w.taal !== 'nl') t += ' [werkvertaling]';
+  return t;
+}
+
+// ---------------------------------------------------------------- de schermen
+let losse = null;   // de passage die "Een andere" heeft gekozen
+
+function schermOntdek() {
+  const bekend = PASSAGES.filter((p) => p.bekend);
+  const vandaag = losse || bekend[dagGetal() % bekend.length];
+  const themas = D.themas.filter((t) => t.aantal).sort((a, b) => b.aantal - a.aantal).slice(0, 14);
+  let h = '<div class="tussenkop" style="margin-top:4px"><span>' + (losse ? 'Zomaar een passage' : 'Passage van vandaag') + '</span></div>' +
+    kaart(vandaag, { groot: true }) +
+    '<div class="knoppen"><button class="knop" data-doe="andere">Een andere</button></div>' +
+    '<div class="tussenkop"><span>Thema\'s</span><a href="#/themas">Alle thema\'s ›</a></div>' +
+    '<div class="chips">' + themas.map((t) => '<a class="chip" href="#/thema/' + t.id + '">' + esc(t.naam) + '<small>' + t.aantal + '</small></a>').join('') + '</div>' +
+    '<div class="tussenkop"><span>Denkers</span><a href="#/denkers">Alle denkers ›</a></div>';
+  D.denkers.forEach((d) => { h += denkerRij(d); });
+  h += '<p class="klein" style="margin-top:26px">' + D.denkers.length + ' denkers, ' + PASSAGES.length +
+    ' passages. <a href="#/over">Hoe betrouwbaar is dit?</a></p>';
+  return h;
+}
+
+function denkerRij(d) {
+  return '<a class="rij" href="#/denker/' + d.id + '"><i class="stip" style="background:' + esc(GROEP[d.groep].kleur) + '"></i>' +
+    '<span class="midden"><b>' + esc(d.naam) + '</b><span>' + esc(d.jaren) + (d.gestorven ? '' : ' – heden') + ' · ' + esc(GROEP[d.groep].naam.split(' — ')[0]) + '</span></span>' +
+    '<span class="tel">' + d.passages.length + '</span></a>';
+}
+
+function schermDenkers() {
+  let h = '<h1 class="titel">Denkers</h1><p class="onder-titel">' + D.denkers.length + ' denkers, ' + PASSAGES.length + ' passages</p>' +
+    '<div class="wissel">' +
+    '<button data-doe="sorteer" data-op="groep" class="' + (ui.denkersOp === 'groep' ? 'aan' : '') + '">Per groep</button>' +
+    '<button data-doe="sorteer" data-op="tijd" class="' + (ui.denkersOp === 'tijd' ? 'aan' : '') + '">Op tijd</button></div>';
+  if (ui.denkersOp === 'tijd') {
+    h += '<div style="margin-top:16px">' + D.denkers.slice().sort((a, b) => a.geboren - b.geboren).map(denkerRij).join('') + '</div>';
+  } else {
+    D.groepen.forEach((g) => {
+      const leden = D.denkers.filter((d) => d.groep === g.id);
+      if (!leden.length) return;
+      h += '<h2 class="groepkop"><i style="background:' + esc(g.kleur) + '"></i>' + esc(g.naam) + '</h2>' +
+        '<p class="groepsub">' + esc(g.kort) + '</p>' + leden.map(denkerRij).join('');
+    });
+  }
+  return h;
+}
+
+function schermDenker(id, tab, werkId) {
+  const d = DENKER[id];
+  if (!d) return nietGevonden();
+  tab = tab === 'achtergrond' ? 'achtergrond' : 'passages';
+  let h = '<a class="terug" href="#/denkers">‹ Denkers</a>' +
+    '<div class="denkerkop"><h1 class="titel">' + esc(d.naam) + '</h1>' +
+    '<div class="jaren">' + esc(d.jaren) + (d.gestorven ? '' : ' – heden') + ' · ' + esc(GROEP[d.groep].naam) + '</div>' +
+    '<p class="kort">' + esc(d.kort) + '</p></div>' +
+    '<div class="wissel"><a href="#/denker/' + d.id + '" class="' + (tab === 'passages' ? 'aan' : '') + '">Passages</a>' +
+    '<a href="#/denker/' + d.id + '/achtergrond" class="' + (tab === 'achtergrond' ? 'aan' : '') + '">Achtergrond</a></div>';
+
+  if (tab === 'achtergrond') {
+    h += '<div style="margin-top:14px"><div class="blok"><h3>Leven</h3><p>' + esc(d.leven) + '</p></div>' +
+      '<div class="blok"><h3>Kernideeën</h3>' + d.kernideeen.map((k) =>
+        '<div class="idee"><b>' + esc(k.titel) + '</b><span>' + esc(k.tekst) + '</span></div>').join('') + '</div>' +
+      (d.lezen ? '<div class="blok"><h3>Waar begin je?</h3><p>' + esc(d.lezen) + '</p></div>' : '') +
+      '<div class="blok"><h3>Werken</h3>' + d.werken.slice().sort((a, b) => parseInt(a.jaar) - parseInt(b.jaar) || 0).map((w) => {
+        const n = d.passages.filter((p) => p.werk === w.id).length;
+        return '<div class="werk"><em>' + esc(w.titel) + '</em> · ' + esc(w.jaar) +
+          '<small>' + (w.oorspronkelijk ? esc(w.oorspronkelijk) + ' · ' : '') +
+          (n ? '<a href="#/denker/' + d.id + '/werk/' + w.id + '">' + n + (n === 1 ? ' passage' : ' passages') + '</a>' : 'nog geen passages') +
+          (w.link ? ' · <a href="' + esc(w.link) + '" target="_blank" rel="noopener">volledige tekst</a>' : '') + '</small></div>';
+      }).join('') + '</div>';
+    if (d.nooit_gezegd && d.nooit_gezegd.length) {
+      h += '<div class="blok nooit"><h3>Nooit gezegd</h3>' + d.nooit_gezegd.map((n) =>
+        '<blockquote>' + esc(n.tekst) + '</blockquote><p>' + esc(n.toelichting) + '</p>').join('') + '</div>';
+    }
+    h += '<p class="klein">Deze achtergrond is geschreven door Claude en is geen bron.</p></div>';
+    return h;
+  }
+
+  const metPassages = d.werken.filter((w) => d.passages.some((p) => p.werk === w.id));
+  if (metPassages.length > 1) {
+    h += '<div class="chips" style="margin:14px 0 4px">' +
+      '<a class="chip' + (werkId ? '' : ' aan') + '" href="#/denker/' + d.id + '">Alles</a>' +
+      metPassages.map((w) => '<a class="chip' + (werkId === w.id ? ' aan' : '') + '" href="#/denker/' + d.id + '/werk/' + w.id + '">' + esc(w.titel) + '</a>').join('') + '</div>';
+  }
+  const lijst = d.passages.filter((p) => !werkId || p.werk === werkId);
+  h += '<div style="margin-top:14px">' + lijst.map((p) => kaart(p, { zonderDenker: true })).join('') + '</div>';
+  return h;
+}
+
+function schermThemas() {
+  const met = D.themas.filter((t) => t.aantal).sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
+  return '<h1 class="titel">Thema\'s</h1><p class="onder-titel">Wat verschillende denkers over hetzelfde zeggen</p>' +
+    met.map((t) => {
+      const wie = [...new Set(PASSAGES.filter((p) => p.themas.includes(t.id)).map((p) => p.denker.sorteernaam))];
+      return '<a class="rij" href="#/thema/' + t.id + '"><span class="midden"><b>' + esc(t.naam) + '</b><span>' + esc(wie.join(', ')) + '</span></span><span class="tel">' + t.aantal + '</span></a>';
+    }).join('');
+}
+
+function schermThema(id) {
+  const t = THEMA[id];
+  if (!t) return nietGevonden();
+  const lijst = PASSAGES.filter((p) => p.themas.includes(id)).sort((a, b) => a.denker.geboren - b.denker.geboren);
+  return '<a class="terug" href="#/themas">‹ Thema\'s</a><h1 class="titel">' + esc(t.naam) + '</h1>' +
+    '<p class="onder-titel">' + lijst.length + (lijst.length === 1 ? ' passage' : ' passages') + ', van oud naar nieuw</p>' +
+    lijst.map((p) => kaart(p)).join('');
+}
+
+function schermBewaard() {
+  const ids = [...new Set(Object.keys(st.sterren).concat(Object.keys(st.notities)))].filter((id) => OP_ID[id]);
+  ids.sort((a, b) => String(st.sterren[b] || '').localeCompare(String(st.sterren[a] || '')));
+  let h = '<h1 class="titel">Bewaard</h1>';
+  if (!ids.length) {
+    h += '<div class="leeg"><b>Nog niets bewaard</b>Tik op de ster bij een passage om hem hier terug te vinden, of op het potlood om er iets bij te schrijven.</div>';
+  } else {
+    h += '<p class="onder-titel">' + ids.length + (ids.length === 1 ? ' passage' : ' passages') + '</p>' + ids.map((id) => kaart(OP_ID[id])).join('');
+  }
+  h += '<div class="tussenkop"><span>Reservekopie</span></div>' +
+    '<p class="klein">Je sterren en aantekeningen staan alleen in deze browser. Een reservekopie is een bestandje dat je kunt bewaren en later terugzetten, ook op een ander toestel.</p>' +
+    '<div class="knoppen"><button class="knop" data-doe="kopie-maken">Reservekopie opslaan</button>' +
+    '<label class="knop">Terugzetten<input type="file" accept="application/json,.json" id="terugzet" hidden></label></div>';
+  return h;
+}
+
+function schermZoek(q) {
+  const woorden = kaal(q).split(/\s+/).filter(Boolean);
+  if (!woorden.length) return schermOntdek();
+  const raak = PASSAGES.filter((p) => woorden.every((w) => p.zoek.includes(w)));
+  // Bovenaan wat het woord in de passage zelf heeft staan, daaronder wat
+  // alleen via de denker, het werk of het thema is gevonden.
+  const gewicht = (p) => (woorden.every((w) => p.zoekTekst.includes(w)) ? 2 : 0) + (p.bekend ? 1 : 0);
+  raak.sort((a, b) => gewicht(b) - gewicht(a));
+  const denkers = D.denkers.filter((d) => woorden.every((w) => kaal(d.naam).includes(w)));
+  const themas = D.themas.filter((t) => t.aantal && woorden.every((w) => kaal(t.naam).includes(w)));
+  let h = '<p class="onder-titel" style="margin-top:4px">' + raak.length + (raak.length === 1 ? ' passage' : ' passages') + ' voor “' + esc(q) + '”</p>';
+  if (themas.length) h += '<div class="chips" style="margin-bottom:14px">' + themas.map((t) => '<a class="chip" href="#/thema/' + t.id + '">Thema: ' + esc(t.naam) + '<small>' + t.aantal + '</small></a>').join('') + '</div>';
+  h += denkers.map(denkerRij).join('');
+  if (!raak.length && !denkers.length && !themas.length) {
+    h += '<div class="leeg"><b>Niets gevonden</b>Probeer één woord, of blader door de <a href="#/themas">thema\'s</a>. Alles in deze app is Nederlands; een Engels of Duits citaat vind je alleen op woorden uit de bronzin.</div>';
+  }
+  const TOON = 60;
+  h += raak.slice(0, TOON).map((p) => kaart(p, { woorden })).join('');
+  if (raak.length > TOON) h += '<p class="klein">De eerste ' + TOON + ' van ' + raak.length + '. Maak je zoekvraag preciezer voor de rest.</p>';
+  return h;
+}
+
+function schermOver() {
+  const tel = { gecontroleerd: 0, geheugen: 0, parafrase: 0 };
+  PASSAGES.forEach((p) => { tel[p.status]++; });
+  return '<a class="terug" href="#/">‹ Ontdek</a><h1 class="titel">Hoe betrouwbaar is dit?</h1>' +
+    '<p class="onder-titel">Het internet staat vol uitspraken die nooit gedaan zijn. Daarom staat hier bij elke passage waar hij vandaan komt en hoe zeker dat is.</p>' +
+    '<div class="blok"><h3>Drie soorten</h3>' +
+    Object.keys(STATUS).map((k) => '<div class="idee"><b><span class="status ' + k + '"><i></i>' + STATUS[k][0] + '</span> · ' + tel[k] + '</b><span>' + STATUS[k][1] + '</span></div>').join('') + '</div>' +
+    '<div class="blok"><h3>Vertaald, niet geciteerd</h3><p>Alles staat hier in het Nederlands. Waar een denker in een andere taal schreef, is de vertaling van Claude, gemaakt naar de bron die bij de passage staat. Dat is een werkvertaling: goed om te lezen en te zoeken, niet om letterlijk aan te halen. De zin waaruit vertaald is staat onder “Bron en herkomst”.</p>' +
+    '<p>Wil je een passage gebruiken in een stuk of een toespraak, pak dan de gepubliceerde vertaling erbij.</p></div>' +
+    '<div class="blok"><h3>Achtergrond</h3><p>De teksten over leven en kernideeën van een denker zijn door Claude geschreven. Ze zijn bedoeld als wegwijzer, niet als bron.</p></div>' +
+    '<p class="klein">Denkwerk, versie ' + esc(VERSIE) + '</p>';
+}
+
+function nietGevonden() {
+  return '<div class="leeg"><b>Dit bestaat niet (meer)</b><a href="#/">Terug naar het begin</a></div>';
+}
+
+// ---------------------------------------------------------------- welk scherm
+function teken(houScroll) {
+  if (!D) return;
+  const delen = decodeURIComponent(location.hash.replace(/^#\/?/, '')).split('/');
+  let h, tab = 'ontdek';
+  switch (delen[0]) {
+    case 'denkers': h = schermDenkers(); tab = 'denkers'; break;
+    case 'denker':
+      h = delen[2] === 'werk' ? schermDenker(delen[1], 'passages', delen[3]) : schermDenker(delen[1], delen[2]);
+      tab = 'denkers'; break;
+    case 'themas': h = schermThemas(); tab = 'themas'; break;
+    case 'thema': h = schermThema(delen[1]); tab = 'themas'; break;
+    case 'bewaard': h = schermBewaard(); tab = 'bewaard'; break;
+    case 'zoek': h = schermZoek(delen.slice(1).join('/')); tab = ''; break;
+    case 'over': h = schermOver(); break;
+    default: h = schermOntdek();
+  }
+  const y = window.scrollY;
+  scherm.innerHTML = h;
+  document.querySelectorAll('.onder a').forEach((a) => a.classList.toggle('aan', a.dataset.tab === tab));
+  if (delen[0] !== 'zoek' && document.activeElement !== zoekveld) zoekveld.value = '';
+  window.scrollTo(0, houScroll ? y : 0);
+}
+
+window.addEventListener('hashchange', () => teken(false));
+
+// Zoeken terwijl je typt. Het adres verandert mee zonder een stap in de
+// geschiedenis toe te voegen: anders moet je twintig keer op terug drukken om
+// van een zoekvraag af te komen.
+let zoekTimer = 0;
+zoekveld.addEventListener('input', () => {
+  clearTimeout(zoekTimer);
+  zoekTimer = setTimeout(() => {
+    const q = zoekveld.value.trim();
+    const doel = q ? '#/zoek/' + encodeURIComponent(q) : '#/';
+    if (location.hash.startsWith('#/zoek/') || !q) history.replaceState(null, '', doel);
+    else history.pushState(null, '', doel);
+    teken(false);
+  }, 140);
+});
+zoekveld.addEventListener('keydown', (e) => { if (e.key === 'Enter') zoekveld.blur(); });
+
+// ---------------------------------------------------------------- tikken
+scherm.addEventListener('click', (e) => {
+  const knop = e.target.closest('[data-doe]');
+  if (!knop) return;
+  const art = knop.closest('.passage'), id = art && art.dataset.id, doe = knop.dataset.doe;
+  if (doe === 'ster') {
+    if (st.sterren[id]) delete st.sterren[id]; else st.sterren[id] = new Date().toISOString();
+    bewaar();
+    const aan = !!st.sterren[id];
+    knop.classList.toggle('aan', aan); knop.setAttribute('aria-pressed', aan);
+    meld(aan ? 'Bewaard' : 'Niet meer bewaard');
+  } else if (doe === 'kopie') {
+    const tekst = kopieTekst(OP_ID[id]);
+    (navigator.clipboard ? navigator.clipboard.writeText(tekst) : Promise.reject())
+      .then(() => meld('Gekopieerd, met bron'), () => meld('Kopiëren lukt hier niet'));
+  } else if (doe === 'notitie') {
+    const vak = art.querySelector('.notitie');
+    vak.hidden = !vak.hidden;
+    if (!vak.hidden) vak.querySelector('textarea').focus();
+  } else if (doe === 'andere') {
+    let p;
+    do { p = PASSAGES[Math.floor(Math.random() * PASSAGES.length)]; } while (PASSAGES.length > 1 && p === losse);
+    losse = p; teken(false);
+  } else if (doe === 'sorteer') {
+    ui.denkersOp = knop.dataset.op; schrijf('denkwerk.ui', ui); teken(true);
+  } else if (doe === 'kopie-maken') {
+    const blob = new Blob([JSON.stringify({ app: 'denkwerk', gemaakt: new Date().toISOString(), gegevens: st }, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'denkwerk-reservekopie-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+});
+
+// Een aantekening wordt bewaard terwijl je typt; er is geen knop Opslaan om
+// te vergeten.
+scherm.addEventListener('input', (e) => {
+  if (e.target.tagName !== 'TEXTAREA') return;
+  const art = e.target.closest('.passage'), id = art.dataset.id, tekst = e.target.value;
+  if (tekst.trim()) st.notities[id] = tekst; else delete st.notities[id];
+  bewaar();
+  art.querySelector('[data-doe="notitie"]').classList.toggle('heeft', !!tekst.trim());
+});
+
+scherm.addEventListener('change', (e) => {
+  if (e.target.id !== 'terugzet' || !e.target.files[0]) return;
+  const lezer = new FileReader();
+  lezer.onload = () => {
+    try {
+      const k = JSON.parse(lezer.result);
+      if (k.app !== 'denkwerk' || !k.gegevens) throw new Error('geen reservekopie van Denkwerk');
+      // Samenvoegen, niet vervangen: wat je sindsdien hebt bewaard blijft staan.
+      st.sterren = Object.assign({}, k.gegevens.sterren, st.sterren);
+      st.notities = Object.assign({}, k.gegevens.notities, st.notities);
+      bewaar(); teken(false); meld('Reservekopie teruggezet');
+    } catch (err) { meld('Dit is geen reservekopie van Denkwerk'); }
+  };
+  lezer.readAsText(e.target.files[0]);
+});
+
+// ---------------------------------------------------------------- starten
+fetch('data.json').then((r) => {
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}).then((data) => {
+  verwerk(data);
+  if (location.hash.startsWith('#/zoek/')) zoekveld.value = decodeURIComponent(location.hash.slice(7));
+  teken(false);
+}).catch(() => {
+  scherm.innerHTML = '<div class="leeg"><b>De passages konden niet worden geladen</b>Heb je bereik? Na één keer openen met bereik werkt de app ook zonder.</div>';
+});
+
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
