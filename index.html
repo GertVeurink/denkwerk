@@ -170,6 +170,24 @@ details.herkomst p { margin: 0 0 8px; }
 .rij b { font: 600 18px/1.25 var(--schreef); display: block; color: var(--inkt); }
 .rij span { color: var(--zacht); font-size: 14px; display: block; }
 .rij .tel { color: var(--zacht); font-size: 13px; flex: none; font-variant-numeric: tabular-nums; }
+/* Uitklapgroepen (Denkers en Literatuur). Standaard dicht: met zestig denkers
+   werd de lijst te lang om in één keer te overzien. Wat je openklapt, onthoudt
+   de app per toestel in denkwerk.ui. */
+details.klap { margin: 0 0 10px; }
+details.klap > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; background: var(--kaart); border: 1px solid var(--lijn); border-radius: 16px; }
+details.klap > summary::-webkit-details-marker { display: none; }
+details.klap > summary .stip { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+details.klap > summary .midden { flex: 1; min-width: 0; }
+details.klap > summary b { display: block; font: 600 18px/1.25 var(--schreef); color: var(--inkt); }
+details.klap > summary small { display: block; color: var(--zacht); font-size: 13.5px; margin-top: 2px; }
+details.klap > summary .tel { color: var(--zacht); font-size: 13px; flex: none; font-variant-numeric: tabular-nums; }
+details.klap > summary .pijl { width: 18px; height: 18px; flex: none; color: var(--zacht); transition: transform .15s; }
+details.klap[open] > summary { border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
+details.klap[open] > summary .pijl { transform: rotate(90deg); }
+details.klap > .klapinhoud { padding-top: 8px; }
+.alleskeuze { display: flex; justify-content: flex-end; margin: 14px 0 8px; }
+.alleskeuze button { border: 0; background: none; color: var(--accent); font-size: 14px; padding: 4px 2px; }
 .groepkop { display: flex; align-items: center; gap: 9px; margin: 26px 0 4px; font: 600 19px/1.2 var(--schreef); }
 .groepkop i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .groepsub { color: var(--zacht); font-size: 14px; margin: 0 0 12px 19px; }
@@ -270,7 +288,7 @@ details.herkomst p { margin: 0 0 8px; }
  * allemaal met 'denkwerk' en de servicewerker ruimt alleen zijn eigen caches
  * op.
  */
-const VERSIE = 'e8b1d0e6cb';
+const VERSIE = 'ae2342409d';
 const scherm = document.getElementById('scherm');
 const zoekveld = document.getElementById('zoek');
 
@@ -440,19 +458,52 @@ function denkerRij(d) {
     '<span class="tel">' + d.passages.length + '</span></a>';
 }
 
+// Een uitklapgroep. 'sleutel' bepaalt onder welke naam de app onthoudt of hij
+// open staat (ui.open), bijvoorbeeld "denkers:groep:oudheid".
+function klapGroep(sleutel, kleur, titel, sub, tel, inhoud) {
+  const open = ui.open && ui.open[sleutel];
+  return '<details class="klap" data-sleutel="' + esc(sleutel) + '"' + (open ? ' open' : '') + '><summary>' +
+    (kleur ? '<i class="stip" style="background:' + esc(kleur) + '"></i>' : '') +
+    '<span class="midden"><b>' + esc(titel) + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</span>' +
+    '<span class="tel">' + esc(tel) + '</span>' +
+    '<svg class="pijl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>' +
+    '</summary><div class="klapinhoud">' + inhoud + '</div></details>';
+}
+
+function allesKeuze() {
+  return '<div class="alleskeuze"><button data-doe="alles-klap">Alles openklappen</button></div>';
+}
+
+// Tijdvakken voor "Op tijd": op het geboortejaar (of sorteerjaar).
+const TIJDVAKKEN = [
+  { id: 'oudheid', naam: 'Oudheid', sub: 'tot 500', tot: 500 },
+  { id: 'middeleeuwen', naam: 'Middeleeuwen', sub: '500 tot 1500', tot: 1500 },
+  { id: 'vroegmodern', naam: 'Vroegmoderne tijd', sub: '1500 tot 1800', tot: 1800 },
+  { id: 'negentiende', naam: 'Negentiende eeuw', sub: 'geboren 1800 tot 1880', tot: 1880 },
+  { id: 'twintigste', naam: 'Twintigste eeuw', sub: 'geboren 1880 tot 1940', tot: 1940 },
+  { id: 'nu', naam: 'Na de oorlog en nu', sub: 'geboren na 1940, of werk van nu', tot: Infinity }
+];
+
 function schermDenkers() {
   let h = '<h1 class="titel">Denkers</h1><p class="onder-titel">' + D.denkers.length + ' denkers, ' + PASSAGES.length + ' passages</p>' +
     '<div class="wissel">' +
     '<button data-doe="sorteer" data-op="groep" class="' + (ui.denkersOp === 'groep' ? 'aan' : '') + '">Per groep</button>' +
     '<button data-doe="sorteer" data-op="tijd" class="' + (ui.denkersOp === 'tijd' ? 'aan' : '') + '">Op tijd</button></div>';
+  h += allesKeuze();
   if (ui.denkersOp === 'tijd') {
-    h += '<div style="margin-top:16px">' + D.denkers.slice().sort((a, b) => tijdvan(a) - tijdvan(b)).map(denkerRij).join('') + '</div>';
+    const op = D.denkers.slice().sort((a, b) => tijdvan(a) - tijdvan(b));
+    let van = -Infinity;
+    TIJDVAKKEN.forEach((t) => {
+      const leden = op.filter((d) => tijdvan(d) >= van && tijdvan(d) < t.tot);
+      van = t.tot;
+      if (!leden.length) return;
+      h += klapGroep('denkers:tijd:' + t.id, '', t.naam, t.sub, leden.length, leden.map(denkerRij).join(''));
+    });
   } else {
     D.groepen.forEach((g) => {
       const leden = D.denkers.filter((d) => d.groep === g.id);
       if (!leden.length) return;
-      h += '<h2 class="groepkop"><i style="background:' + esc(g.kleur) + '"></i>' + esc(g.naam) + '</h2>' +
-        '<p class="groepsub">' + esc(g.kort) + '</p>' + leden.map(denkerRij).join('');
+      h += klapGroep('denkers:groep:' + g.id, g.kleur, g.naam, g.kort, leden.length, leden.map(denkerRij).join(''));
     });
   }
   return h;
@@ -597,11 +648,11 @@ function schermLiteratuur() {
       rijen.push(literatuurRegel(esc(w.auteur), w, ''));
     });
     if (!rijen.length) return;
-    h += '<h2 class="groepkop"><i style="background:' + esc(g.kleur) + '"></i>' + esc(g.naam) + '</h2>' +
-      '<div class="blok lit">' + rijen.join('') + '</div>';
+    h += klapGroep('literatuur:' + g.id, g.kleur, g.naam, '', rijen.length + (rijen.length === 1 ? ' werk' : ' werken'),
+      '<div class="blok lit">' + rijen.join('') + '</div>');
   });
   return '<h1 class="titel">Literatuur</h1><p class="onder-titel">' + totaal + ' werken, waarvan ' + nog +
-    ' nog niet geciteerd</p>' + h;
+    ' nog niet geciteerd</p>' + allesKeuze() + h;
 }
 
 function literatuurRegel(wie, w, naarPassages) {
@@ -633,6 +684,8 @@ function teken(houScroll) {
   }
   const y = window.scrollY;
   scherm.innerHTML = h;
+  const klapknop = scherm.querySelector('[data-doe="alles-klap"]');
+  if (klapknop && [...scherm.querySelectorAll('details.klap')].every((x) => x.open)) klapknop.textContent = 'Alles dichtklappen';
   document.querySelectorAll('.onder a').forEach((a) => a.classList.toggle('aan', a.dataset.tab === tab));
   if (delen[0] !== 'zoek' && document.activeElement !== zoekveld) zoekveld.value = '';
   window.scrollTo(0, houScroll ? y : 0);
@@ -657,6 +710,16 @@ zoekveld.addEventListener('input', () => {
 zoekveld.addEventListener('keydown', (e) => { if (e.key === 'Enter') zoekveld.blur(); });
 
 // ---------------------------------------------------------------- tikken
+scherm.addEventListener('toggle', (e) => {
+  const d = e.target;
+  if (!d.matches || !d.matches('details.klap')) return;
+  ui.open = ui.open || {};
+  ui.open[d.dataset.sleutel] = d.open;
+  schrijf('denkwerk.ui', ui);
+  const knop = scherm.querySelector('[data-doe="alles-klap"]');
+  if (knop) knop.textContent = [...scherm.querySelectorAll('details.klap')].every((x) => x.open) ? 'Alles dichtklappen' : 'Alles openklappen';
+}, true);
+
 scherm.addEventListener('click', (e) => {
   const knop = e.target.closest('[data-doe]');
   if (!knop) return;
@@ -679,6 +742,13 @@ scherm.addEventListener('click', (e) => {
     let p;
     do { p = PASSAGES[Math.floor(Math.random() * PASSAGES.length)]; } while (PASSAGES.length > 1 && p === losse);
     losse = p; teken(false);
+  } else if (doe === 'alles-klap') {
+    const groepen = [...scherm.querySelectorAll('details.klap')];
+    const open = !groepen.every((d) => d.open);
+    ui.open = ui.open || {};
+    groepen.forEach((d) => { d.open = open; ui.open[d.dataset.sleutel] = open; });
+    schrijf('denkwerk.ui', ui);
+    knop.textContent = open ? 'Alles dichtklappen' : 'Alles openklappen';
   } else if (doe === 'sorteer') {
     ui.denkersOp = knop.dataset.op; schrijf('denkwerk.ui', ui); teken(true);
   } else if (doe === 'kopie-maken') {
