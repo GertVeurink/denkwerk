@@ -7,8 +7,8 @@
 <meta name="description" content="Passages van grote denkers, doorzoekbaar en met bron.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icoon-180.png">
-<meta name="theme-color" content="#faf8f4" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#121817" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1815" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Denkwerk">
 <style>
@@ -20,35 +20,52 @@
  * denkers zeggen, een schreefloze voor alles wat de app zegt. Zo zie je in
  * één oogopslag wat citaat is en wat bediening.
  */
+/*
+ * Het uiterlijk (sinds 23 november 2026): een boekbladzijde met portretten.
+ * Gert koos uit drie schetsen voor "boekbladzijde" met de portretten van de
+ * "galerij" erbij. Daarom: papier in plaats van witte kaartjes, haarlijnen
+ * tussen de passages, één rode aanhalingskomma, en de denkers als galerij.
+ * Bewust géén gekleurde randen links aan vakken: dat liet de vorige versie
+ * zelfgemaakt ogen.
+ */
 :root {
-  --bg: #faf8f4;
-  --kaart: #ffffff;
-  --inkt: #1c2827;
-  --zacht: #5f6d6b;
-  --lijn: #e7e2d9;
-  --accent: #0e7c6b;
-  --accent-inkt: #0a5c50;
-  --accent-zacht: #e2f1ed;
-  --ster: #c98a12;
-  --waarschuw: #9a5b13;
-  --waarschuw-zacht: #f8ecd9;
-  --schaduw: 0 1px 2px rgba(28, 40, 39, .05), 0 6px 20px rgba(28, 40, 39, .05);
-  --schreef: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --bg: #f6f1e7;           /* papier */
+  --kaart: #fbf8f1;        /* een vel dat er net boven ligt */
+  --inkt: #2a2622;
+  --zacht: #6c6256;        /* 5,2 : 1 op het papier, dus goed leesbaar */
+  --lijn: #ddd3c2;
+  --accent: #a23b2f;       /* het rood van een rubriek in een oud boek, 6 : 1 */
+  --accent-inkt: #8c3127;
+  --accent-zacht: #efe1d4;
+  --ster: #b07a10;
+  --waarschuw: #94570f;
+  --waarschuw-zacht: #f3e6d2;
+  --portret-bg: #e4dccd;
+  /* De portretten zijn van alles: marmer, olieverf, zwart-witfoto's. In één
+     warme toon gezet horen ze bij elkaar, zoals platen in een boek. */
+  --portret-filter: grayscale(1) sepia(.28) contrast(1.04) brightness(1.02);
+  --schaduw: 0 1px 2px rgba(42, 38, 34, .05), 0 8px 24px rgba(42, 38, 34, .06);
+  /* New York zit in elke iPhone en Mac en hoeft niet te worden gedownload.
+     Chrome kent hem niet en valt terug op Iowan of Georgia. */
+  --schreef: ui-serif, "New York", "Iowan Old Style", Georgia, serif;
   --kaal: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 }
 @media (prefers-color-scheme: dark) {
+  /* 's Avonds: inkt op een donker vel, niet zwart maar warm. */
   :root {
-    --bg: #121817;
-    --kaart: #1a2322;
-    --inkt: #e9eeec;
-    --zacht: #9babA8;
-    --lijn: #2b3735;
-    --accent: #55cdb4;
-    --accent-inkt: #8be0cd;
-    --accent-zacht: #17332e;
-    --ster: #e9b949;
+    --bg: #1a1815;
+    --kaart: #23201c;
+    --inkt: #ebe4d6;
+    --zacht: #a89e8f;
+    --lijn: #38332c;
+    --accent: #e3907b;
+    --accent-inkt: #eba591;
+    --accent-zacht: #3a2721;
+    --ster: #e6b453;
     --waarschuw: #e0b06a;
     --waarschuw-zacht: #33290f;
+    --portret-bg: #2c2823;
+    --portret-filter: grayscale(1) sepia(.22) contrast(1.02) brightness(.9);
     --schaduw: none;
   }
 }
@@ -66,54 +83,93 @@ h1, h2, h3 { font-family: var(--schreef); font-weight: 600; line-height: 1.2; ma
 /* --- kop met het zoekveld: blijft staan, want zoeken kan vanaf elk scherm --- */
 .kop {
   position: sticky; top: 0; z-index: 5;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--lijn);
-  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  padding: calc(10px + env(safe-area-inset-top)) 16px 0;
+}
+/* Een dubbele lijn onder de kop, zoals onder de titel van een krant of bundel. */
+.kop::after {
+  content: ""; display: block; max-width: 720px; margin: 10px auto 0; height: 4px;
+  border-top: 1.5px solid var(--inkt); border-bottom: .5px solid var(--inkt); opacity: .8;
 }
 .kop .binnen { max-width: 720px; margin: 0 auto; display: flex; gap: 12px; align-items: center; }
-.merk { font: 600 20px/1 var(--schreef); color: var(--inkt); letter-spacing: -.01em; flex: none; }
-.merk span { color: var(--accent); }
+.merk { font: 600 23px/1 var(--schreef); color: var(--inkt); letter-spacing: -.015em; flex: none; }
 .zoekvak { position: relative; flex: 1; min-width: 0; }
 .zoekvak svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: var(--zacht); pointer-events: none; }
+/* 16px is geen smaak: bij kleiner zoomt Safari in zodra je het veld aanraakt. */
 #zoek {
-  width: 100%; font: inherit; color: var(--inkt);
-  background: var(--kaart); border: 1px solid var(--lijn); border-radius: 999px;
-  padding: 9px 14px 9px 36px; outline: none; -webkit-appearance: none; appearance: none;
+  width: 100%; font: 16px/1.3 var(--kaal); color: var(--inkt);
+  background: color-mix(in srgb, var(--kaart) 70%, transparent); border: 1px solid var(--lijn); border-radius: 999px;
+  padding: 8px 14px 8px 36px; outline: none; -webkit-appearance: none; appearance: none;
 }
 #zoek:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-zacht); }
 #zoek::placeholder { color: var(--zacht); }
 
-main { max-width: 720px; margin: 0 auto; padding: 20px 16px 8px; }
-.titel { font-size: 28px; margin: 6px 0 4px; letter-spacing: -.015em; }
-.onder-titel { color: var(--zacht); margin: 0 0 20px; }
+main { max-width: 720px; margin: 0 auto; padding: 18px 16px 8px; }
+.titel { font-size: 32px; margin: 6px 0 4px; letter-spacing: -.02em; }
+.onder-titel { color: var(--zacht); margin: 0 0 20px; font: italic 16px/1.45 var(--schreef); }
 .tussenkop {
-  font: 600 12px/1 var(--kaal); letter-spacing: .09em; text-transform: uppercase;
-  color: var(--zacht); margin: 30px 0 12px; display: flex; justify-content: space-between; align-items: baseline;
+  font: 600 11.5px/1 var(--kaal); letter-spacing: .14em; text-transform: uppercase;
+  color: var(--zacht); margin: 34px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--lijn);
+  display: flex; justify-content: space-between; align-items: baseline;
 }
-.tussenkop a { letter-spacing: 0; text-transform: none; font-weight: 500; font-size: 14px; }
+.tussenkop a { letter-spacing: 0; text-transform: none; font-weight: 500; font-size: 14px; color: var(--accent-inkt); }
 .terug { display: inline-flex; align-items: center; gap: 4px; color: var(--zacht); font-size: 14px; margin-bottom: 6px; }
 
-/* --- een passage --- */
-.passage {
-  background: var(--kaart); border: 1px solid var(--lijn); border-radius: 16px;
-  padding: 18px 18px 12px; margin: 0 0 14px; box-shadow: var(--schaduw);
+/* --- portretten --- */
+.portret {
+  display: block; position: relative; overflow: hidden; background: var(--portret-bg);
+  border-radius: 14px; aspect-ratio: 4 / 5;
 }
+.portret img {
+  width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block;
+  filter: var(--portret-filter); opacity: 0; transition: opacity .5s ease;
+}
+.portret img.geladen { opacity: 1; }
+/* Wie geen vrij portret heeft, krijgt een beginletter in de kleur van zijn
+   groep, zoals een versierde hoofdletter. Liever dat dan een verzonnen gezicht. */
+.portret.letter { display: grid; place-items: center; }
+.portret.letter span {
+  font: 600 clamp(28px, 9vw, 64px)/1 var(--schreef); color: color-mix(in srgb, var(--groep) 75%, var(--inkt));
+}
+.portret.letter { background: color-mix(in srgb, var(--groep) 16%, var(--portret-bg)); }
+.portret.boog { border-radius: 999px 999px 14px 14px; }
+.portret.rond { border-radius: 50%; aspect-ratio: 1; }
+.portret.rond.letter span { font-size: 13px; }
+
+/* --- de passage van vandaag: de omslag --- */
+.omslag { text-align: center; padding: 6px 4px 4px; animation: binnen .7s ease both; }
+.omslag .datum { font: 600 11.5px/1 var(--kaal); letter-spacing: .16em; text-transform: uppercase; color: var(--zacht); }
+.omslag .portret { width: 46%; max-width: 210px; margin: 18px auto 0; }
+.omslag blockquote {
+  margin: 22px 0 0; font: 400 25px/1.36 var(--schreef); letter-spacing: -.01em;
+  text-wrap: balance; color: var(--inkt);
+}
+.omslag blockquote::before {
+  content: "“"; display: block; font: 600 64px/.6 var(--schreef); color: var(--accent); height: 30px;
+}
+.omslag .wie { display: block; margin: 16px 0 0; font: italic 16px/1.45 var(--schreef); color: var(--zacht); }
+.omslag .wie a { font-style: normal; font-weight: 600; color: var(--inkt); }
+.omslag .passage { text-align: left; margin-top: 18px; padding-top: 0; border-top: 0; }
+@keyframes binnen { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) {
+  .omslag { animation: none; }
+  .portret img { transition: none; }
+}
+
+/* --- een passage: geen kaartje, maar tekst op de bladzijde tussen haarlijnen --- */
+.passage { padding: 22px 0 10px; margin: 0; border-top: 1px solid var(--lijn); }
+.passage:first-child { border-top: 0; }
 .passage blockquote {
-  margin: 0; font: 18px/1.55 var(--schreef); color: var(--inkt);
+  margin: 0; font: 19px/1.55 var(--schreef); color: var(--inkt);
   text-wrap: pretty; hanging-punctuation: first;
 }
-.passage.groot { padding: 26px 22px 14px; border-color: transparent; background: var(--accent-zacht); box-shadow: none; }
-.passage.groot blockquote { font-size: 23px; line-height: 1.42; }
-.passage.groot .voet { border-top-color: color-mix(in srgb, var(--accent) 22%, transparent); }
-mark { background: color-mix(in srgb, var(--ster) 32%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
-.wie { margin: 12px 0 0; font-size: 14.5px; color: var(--zacht); }
+mark { background: color-mix(in srgb, var(--ster) 30%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+.wie { margin: 12px 0 0; font-size: 14.5px; color: var(--zacht); display: flex; align-items: center; gap: 9px; }
+.wie .portret { width: 26px; flex: none; }
 .wie a { font-weight: 600; color: var(--inkt); }
-.toelichting { margin: 10px 0 0; font-size: 14.5px; color: var(--zacht); padding-left: 12px; border-left: 2px solid var(--lijn); }
-.voet {
-  display: flex; align-items: flex-start; gap: 8px;
-  margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--lijn);
-}
+.toelichting { margin: 10px 0 0; font: italic 16px/1.5 var(--schreef); color: var(--zacht); }
+.voet { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; }
 .voet .labels { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; padding-top: 5px; }
 .voet .acties { flex: none; display: flex; }
 .chip {
@@ -121,7 +177,7 @@ mark { background: color-mix(in srgb, var(--ster) 32%, transparent); color: inhe
   background: transparent; border: 1px solid var(--lijn); color: var(--zacht); white-space: nowrap;
 }
 a.chip:active { background: var(--accent-zacht); }
-.chip.aan { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.chip.aan { background: var(--inkt); border-color: var(--inkt); color: var(--bg); }
 .knop-rond {
   width: 36px; height: 36px; border-radius: 50%; border: 0; background: transparent;
   display: inline-grid; place-items: center; color: var(--zacht); padding: 0;
@@ -134,72 +190,80 @@ a.chip:active { background: var(--accent-zacht); }
 
 details.herkomst { margin-top: 2px; font-size: 14px; color: var(--zacht); }
 details.herkomst summary {
-  list-style: none; cursor: pointer; padding: 8px 0 6px; display: flex; align-items: center; gap: 7px;
+  list-style: none; cursor: pointer; padding: 6px 0 8px; display: flex; align-items: center; gap: 7px;
 }
 details.herkomst summary::-webkit-details-marker { display: none; }
 details.herkomst summary::after { content: "›"; transition: transform .15s; font-size: 16px; }
 details.herkomst[open] summary::after { transform: rotate(90deg); }
 .status { display: inline-flex; align-items: center; gap: 5px; font-weight: 500; }
-.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+.status i { width: 7px; height: 7px; border-radius: 50%; background: var(--zacht); flex: none; }
+.status.gecontroleerd i { background: #4f7a5a; }
 .status.geheugen i { background: transparent; border: 1.5px solid var(--zacht); }
 .status.parafrase { color: var(--waarschuw); }
 .status.parafrase i { background: var(--waarschuw); }
-.bronzin { font: italic 15.5px/1.5 var(--schreef); color: var(--inkt); margin: 4px 0 10px; padding: 10px 12px; background: var(--bg); border-radius: 10px; }
+.bronzin { font: italic 15.5px/1.5 var(--schreef); color: var(--inkt); margin: 4px 0 10px; padding: 12px 14px; background: var(--kaart); border-radius: 12px; }
 details.herkomst p { margin: 0 0 8px; }
 .notitie { margin-top: 8px; }
 .notitie textarea {
-  width: 100%; min-height: 70px; resize: vertical; font: 15px/1.45 var(--kaal); color: var(--inkt);
-  background: var(--bg); border: 1px solid var(--lijn); border-radius: 10px; padding: 10px 12px; outline: none;
+  width: 100%; min-height: 70px; resize: vertical; font: 16px/1.45 var(--schreef); color: var(--inkt);
+  background: var(--kaart); border: 1px solid var(--lijn); border-radius: 12px; padding: 10px 12px; outline: none;
 }
 .notitie textarea:focus { border-color: var(--accent); }
 
-/* --- lijsten en tegels --- */
+/* --- lijsten --- */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chips .chip { font-size: 14px; padding: 8px 12px; background: var(--kaart); color: var(--inkt); }
-.chips .chip small { color: var(--zacht); margin-left: 4px; }
+.chips .chip { font: 15px/1.25 var(--schreef); padding: 8px 13px; color: var(--inkt); }
+.chips .chip small { font: 12px/1 var(--kaal); color: var(--zacht); margin-left: 5px; }
 /* Lange werktitels mogen afbreken, anders lopen ze over de rand van het scherm. */
-.chips .chip { max-width: 100%; white-space: normal; line-height: 1.25; }
-.chips .chip.aan { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-.rij {
-  display: flex; align-items: center; gap: 14px; padding: 14px 16px; color: var(--inkt);
-  background: var(--kaart); border: 1px solid var(--lijn); border-radius: 14px; margin-bottom: 10px;
-}
-.rij:active { border-color: var(--accent); }
-.rij .stip { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.chips .chip { max-width: 100%; white-space: normal; }
+.chips .chip.aan { background: var(--inkt); border-color: var(--inkt); color: var(--bg); }
+.chips .chip.aan small { color: inherit; }
+/* Een rij is een regel in een register: haarlijn eronder, geen vak eromheen. */
+.rij { display: flex; align-items: center; gap: 14px; padding: 14px 2px; color: var(--inkt); border-bottom: 1px solid var(--lijn); }
 .rij .midden { flex: 1; min-width: 0; }
 .rij b { font: 600 18px/1.25 var(--schreef); display: block; color: var(--inkt); }
 .rij span { color: var(--zacht); font-size: 14px; display: block; }
 .rij .tel { color: var(--zacht); font-size: 13px; flex: none; font-variant-numeric: tabular-nums; }
+.rij .portret { width: 44px; flex: none; }
+
+/* De galerij: de denkers als portretten, drie naast elkaar (vier op een
+   breder scherm). Alleen de kleine portretten laden, en pas als ze in beeld
+   komen (loading="lazy"). */
+.galerij { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 12px; }
+.galerij a { color: var(--inkt); display: block; }
+.galerij b { display: block; font: 600 15px/1.2 var(--schreef); margin-top: 7px; }
+.galerij small { display: block; color: var(--zacht); font-size: 12px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+@media (min-width: 560px) { .galerij { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
 /* Uitklapgroepen (Denkers en Literatuur). Standaard dicht: met zestig denkers
    werd de lijst te lang om in één keer te overzien. Wat je openklapt, onthoudt
    de app per toestel in denkwerk.ui. */
-details.klap { margin: 0 0 10px; }
-details.klap > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
-  padding: 14px 16px; background: var(--kaart); border: 1px solid var(--lijn); border-radius: 16px; }
+details.klap { border-bottom: 1px solid var(--lijn); }
+details.klap > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 16px 2px; }
 details.klap > summary::-webkit-details-marker { display: none; }
-details.klap > summary .stip { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+details.klap > summary .stip { width: 9px; height: 9px; border-radius: 50%; flex: none; }
 details.klap > summary .midden { flex: 1; min-width: 0; }
-details.klap > summary b { display: block; font: 600 18px/1.25 var(--schreef); color: var(--inkt); }
-details.klap > summary small { display: block; color: var(--zacht); font-size: 13.5px; margin-top: 2px; }
+details.klap > summary b { display: block; font: 600 20px/1.25 var(--schreef); color: var(--inkt); }
+details.klap > summary small { display: block; color: var(--zacht); font: italic 15px/1.35 var(--schreef); margin-top: 3px; }
 details.klap > summary .tel { color: var(--zacht); font-size: 13px; flex: none; font-variant-numeric: tabular-nums; }
 details.klap > summary .pijl { width: 18px; height: 18px; flex: none; color: var(--zacht); transition: transform .15s; }
-details.klap[open] > summary { border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
 details.klap[open] > summary .pijl { transform: rotate(90deg); }
-details.klap > .klapinhoud { padding-top: 8px; }
-.alleskeuze { display: flex; justify-content: flex-end; margin: 14px 0 8px; }
-.alleskeuze button { border: 0; background: none; color: var(--accent); font-size: 14px; padding: 4px 2px; }
-.groepkop { display: flex; align-items: center; gap: 9px; margin: 26px 0 4px; font: 600 19px/1.2 var(--schreef); }
-.groepkop i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
-.groepsub { color: var(--zacht); font-size: 14px; margin: 0 0 12px 19px; }
+details.klap > .klapinhoud { padding: 4px 0 22px; }
+.alleskeuze { display: flex; justify-content: flex-end; margin: 14px 0 4px; }
+.alleskeuze button { border: 0; background: none; color: var(--accent-inkt); font-size: 14px; padding: 4px 2px; }
 .wissel { display: inline-flex; background: var(--kaart); border: 1px solid var(--lijn); border-radius: 999px; padding: 3px; margin: 0 0 6px; }
-.wissel button, .wissel a { border: 0; background: transparent; padding: 7px 14px; border-radius: 999px; font-size: 14px; color: var(--zacht); }
-.wissel .aan { background: var(--accent); color: var(--bg); font-weight: 600; }
+.wissel button, .wissel a { border: 0; background: transparent; padding: 7px 15px; border-radius: 999px; font-size: 14px; color: var(--zacht); }
+.wissel .aan { background: var(--inkt); color: var(--bg); font-weight: 600; }
 
-.denkerkop { margin-bottom: 14px; }
-.denkerkop .jaren { color: var(--zacht); font-size: 15px; margin-top: 4px; }
-.denkerkop .kort { font: 18px/1.5 var(--schreef); margin: 12px 0 0; }
-.blok { background: var(--kaart); border: 1px solid var(--lijn); border-radius: 16px; padding: 18px; margin-bottom: 14px; }
-.blok h3 { font-size: 18px; margin-bottom: 8px; }
+/* --- de pagina van een denker: portret naast de naam --- */
+.denkerkop { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; align-items: end; margin: 8px 0 14px; }
+.denkerkop .titel { font-size: 30px; }
+.denkerkop .jaren { color: var(--zacht); font-size: 14.5px; margin-top: 4px; }
+.denkerkop .kort { grid-column: 1 / -1; font: 19px/1.5 var(--schreef); margin: 4px 0 0; }
+.bijschrift { grid-column: 1 / -1; color: var(--zacht); font-size: 12px; margin: -6px 0 0; }
+.bijschrift a { color: inherit; text-decoration: underline; text-decoration-color: var(--lijn); }
+.blok { background: var(--kaart); border-radius: 16px; padding: 18px; margin-bottom: 14px; }
+.blok h3 { font-size: 19px; margin-bottom: 8px; }
 .blok p { margin: 0 0 10px; }
 .blok p:last-child { margin-bottom: 0; }
 .idee { padding: 10px 0; border-top: 1px solid var(--lijn); }
@@ -213,17 +277,18 @@ details.klap > .klapinhoud { padding-top: 8px; }
 .lit .nog { color: var(--zacht); font-style: italic; }
 .werk em { font-family: var(--schreef); font-size: 16.5px; font-style: normal; font-weight: 600; }
 .werk small { color: var(--zacht); display: block; }
-.nooit blockquote { margin: 0 0 6px; font: italic 17px/1.5 var(--schreef); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--waarschuw) 60%, transparent); }
+.nooit blockquote { margin: 0 0 6px; font: italic 17px/1.5 var(--schreef); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--accent) 60%, transparent); }
 .nooit p { color: var(--zacht); font-size: 14.5px; }
 .klein { color: var(--zacht); font-size: 14px; }
 .leeg { text-align: center; color: var(--zacht); padding: 40px 10px; }
-.leeg b { display: block; font: 600 20px/1.3 var(--schreef); color: var(--inkt); margin-bottom: 6px; }
+.leeg b { display: block; font: 600 21px/1.3 var(--schreef); color: var(--inkt); margin-bottom: 6px; }
 .knop {
-  display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--lijn); background: var(--kaart);
+  display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--lijn); background: transparent;
   border-radius: 999px; padding: 9px 16px; font-size: 14.5px; color: var(--inkt);
 }
-.knop.vol { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+.knop.vol { background: var(--inkt); border-color: var(--inkt); color: var(--bg); font-weight: 600; }
 .knoppen { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.omslag + .knoppen { justify-content: center; }
 .melding {
   position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom)); transform: translateX(-50%);
   background: var(--inkt); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: 14px;
@@ -234,7 +299,7 @@ details.klap > .klapinhoud { padding-top: 8px; }
 /* --- de balk onderin --- */
 .onder {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
-  background: color-mix(in srgb, var(--kaart) 92%, transparent);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
   -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   border-top: 1px solid var(--lijn);
   padding-bottom: env(safe-area-inset-bottom);
@@ -244,15 +309,16 @@ details.klap > .klapinhoud { padding-top: 8px; }
 .onder a svg { width: 23px; height: 23px; }
 .onder a.aan { color: var(--accent); font-weight: 600; }
 @media (min-width: 760px) {
-  main { padding-top: 32px; }
-  .titel { font-size: 34px; }
-  .passage.groot blockquote { font-size: 27px; }
+  main { padding-top: 30px; }
+  .titel { font-size: 38px; }
+  .omslag blockquote { font-size: 30px; }
+  .denkerkop { grid-template-columns: 150px minmax(0, 1fr); }
 }
 </style>
 </head>
 <body>
 <header class="kop"><div class="binnen">
-  <a class="merk" href="#/">Denk<span>werk</span></a>
+  <a class="merk" href="#/">Denkwerk</a>
   <label class="zoekvak">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <input id="zoek" type="search" placeholder="Zoek in passages" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
@@ -288,7 +354,7 @@ details.klap > .klapinhoud { padding-top: 8px; }
  * allemaal met 'denkwerk' en de servicewerker ruimt alleen zijn eigen caches
  * op.
  */
-const VERSIE = '5bd5ef17a8';
+const VERSIE = '09bfcde28f';
 const scherm = document.getElementById('scherm');
 const zoekveld = document.getElementById('zoek');
 
@@ -389,6 +455,26 @@ function vindplaats(p) {
   return esc(w.titel) + ' (' + esc(w.jaar) + ')' + (p.plaats ? ', ' + esc(p.plaats) : '');
 }
 
+// Een portret, of een beginletter als er geen vrij portret is. 'vorm' is
+// 'boog' (de omslag), 'rond' (klein naast een naam) of leeg (de galerij).
+// 'groot' kiest het grote bestand; overal anders het kleine, want een
+// galerij van tachtig grote portretten is te zwaar voor de telefoon.
+function portret(d, vorm, groot) {
+  const kl = 'portret' + (vorm ? ' ' + vorm : '');
+  if (!d.portret) {
+    const letter = (d.sorteernaam || d.naam).replace(/^(de|van|den)\s+/i, '').charAt(0);
+    return '<span class="' + kl + ' letter" style="--groep:' + esc(GROEP[d.groep].kleur) + '" aria-hidden="true"><span>' + esc(letter) + '</span></span>';
+  }
+  const bestand = groot ? d.portret.bestand : d.portret.bestand.replace('portretten/', 'portretten/klein/');
+  return '<span class="' + kl + '"><img src="' + esc(bestand) + '" alt="" loading="' + (groot ? 'eager' : 'lazy') + '" decoding="async"></span>';
+}
+
+function bijschrift(d) {
+  if (!d.portret) return '';
+  return '<p class="bijschrift">Portret: ' + esc(d.portret.maker) + ', <a href="' + esc(d.portret.pagina) +
+    '" target="_blank" rel="noopener">' + esc(d.portret.licentie) + '</a>, via Wikimedia Commons</p>';
+}
+
 function kaart(p, opt) {
   opt = opt || {};
   const w = p.werkObj, s = STATUS[p.status];
@@ -404,9 +490,10 @@ function kaart(p, opt) {
   if (w.link) herkomst += '<p><a href="' + esc(w.link) + '" target="_blank" rel="noopener">Naar de volledige tekst ›</a></p>';
 
   return '<article class="passage' + (opt.groot ? ' groot' : '') + '" data-id="' + p.id + '">' +
-    '<blockquote>' + markeer(p.tekst, opt.woorden) + '</blockquote>' +
-    '<p class="wie">' + (opt.zonderDenker ? '' : '<a href="#/denker/' + p.denker.id + '">' + esc(p.denker.naam) + '</a> · ') +
-      vindplaats(p) + '</p>' +
+    (opt.omslag ? '' : '<blockquote>' + markeer(p.tekst, opt.woorden) + '</blockquote>') +
+    (opt.omslag ? '' : '<p class="wie">' + (opt.zonderDenker ? '' : portret(p.denker, 'rond') +
+      '<span><a href="#/denker/' + p.denker.id + '">' + esc(p.denker.naam) + '</a> · ') +
+      vindplaats(p) + (opt.zonderDenker ? '' : '</span>') + '</p>') +
     (p.toelichting ? '<p class="toelichting">' + esc(p.toelichting) + '</p>' : '') +
     '<div class="voet"><div class="labels">' +
       p.themas.map((t) => '<a class="chip" href="#/thema/' + t + '">' + esc(THEMA[t].naam) + '</a>').join('') +
@@ -435,13 +522,20 @@ function schermOntdek() {
   const bekend = PASSAGES.filter((p) => p.bekend);
   const vandaag = losse || bekend[dagGetal() % bekend.length];
   const themas = D.themas.filter((t) => t.aantal).sort((a, b) => b.aantal - a.aantal).slice(0, 14);
-  let h = '<div class="tussenkop" style="margin-top:4px"><span>' + (losse ? 'Zomaar een passage' : 'Passage van vandaag') + '</span></div>' +
-    kaart(vandaag, { groot: true }) +
+  // De omslag: datum, portret, de passage groot en de denker eronder. De
+  // ster, het potlood en de herkomst staan er wel, maar onder de passage en
+  // niet eromheen: het citaat is de hoofdzaak.
+  const datum = new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
+  let h = '<section class="omslag"><div class="datum">' + (losse ? 'Zomaar een passage' : esc(datum)) + '</div>' +
+    '<a href="#/denker/' + vandaag.denker.id + '">' + portret(vandaag.denker, 'boog', true) + '</a>' +
+    '<blockquote>' + esc(vandaag.tekst) + '</blockquote>' +
+    '<p class="wie"><a href="#/denker/' + vandaag.denker.id + '">' + esc(vandaag.denker.naam) + '</a>, ' + vindplaats(vandaag) + '</p>' +
+    kaart(vandaag, { omslag: true }) + '</section>' +
     '<div class="knoppen"><button class="knop" data-doe="andere">Een andere</button></div>' +
     '<div class="tussenkop"><span>Thema\'s</span><a href="#/themas">Alle thema\'s ›</a></div>' +
     '<div class="chips">' + themas.map((t) => '<a class="chip" href="#/thema/' + t.id + '">' + esc(t.naam) + '<small>' + t.aantal + '</small></a>').join('') + '</div>' +
-    '<div class="tussenkop"><span>Denkers</span><a href="#/denkers">Alle denkers ›</a></div>';
-  D.denkers.forEach((d) => { h += denkerRij(d); });
+    '<div class="tussenkop"><span>Denkers</span><a href="#/denkers">Per groep ›</a></div>' +
+    galerij(D.denkers);
   h += '<p class="klein" style="margin-top:26px">' + D.denkers.length + ' denkers, ' + PASSAGES.length +
     ' passages. <a href="#/over">Hoe betrouwbaar is dit?</a></p>';
   return h;
@@ -453,9 +547,14 @@ function schermOntdek() {
 function tijdvan(d) { return d.geboren != null ? d.geboren : d.sorteerjaar; }
 
 function denkerRij(d) {
-  return '<a class="rij" href="#/denker/' + d.id + '"><i class="stip" style="background:' + esc(GROEP[d.groep].kleur) + '"></i>' +
+  return '<a class="rij" href="#/denker/' + d.id + '">' + portret(d, 'rond') +
     '<span class="midden"><b>' + esc(d.naam) + '</b><span>' + esc(d.jaren) + (d.gestorven || d.geboren == null ? '' : ' – heden') + ' · ' + esc(GROEP[d.groep].naam.split(' — ')[0]) + '</span></span>' +
     '<span class="tel">' + d.passages.length + '</span></a>';
+}
+
+function galerij(lijst) {
+  return '<div class="galerij">' + lijst.map((d) => '<a href="#/denker/' + d.id + '">' + portret(d) +
+    '<b>' + esc(d.sorteernaam) + '</b><small>' + esc(d.jaren) + '</small></a>').join('') + '</div>';
 }
 
 // Een uitklapgroep. 'sleutel' bepaalt onder welke naam de app onthoudt of hij
@@ -497,13 +596,13 @@ function schermDenkers() {
       const leden = op.filter((d) => tijdvan(d) >= van && tijdvan(d) < t.tot);
       van = t.tot;
       if (!leden.length) return;
-      h += klapGroep('denkers:tijd:' + t.id, '', t.naam, t.sub, leden.length, leden.map(denkerRij).join(''));
+      h += klapGroep('denkers:tijd:' + t.id, '', t.naam, t.sub, leden.length, galerij(leden));
     });
   } else {
     D.groepen.forEach((g) => {
       const leden = D.denkers.filter((d) => d.groep === g.id);
       if (!leden.length) return;
-      h += klapGroep('denkers:groep:' + g.id, g.kleur, g.naam, g.kort, leden.length, leden.map(denkerRij).join(''));
+      h += klapGroep('denkers:groep:' + g.id, g.kleur, g.naam, g.kort, leden.length, galerij(leden));
     });
   }
   return h;
@@ -514,9 +613,9 @@ function schermDenker(id, tab, werkId) {
   if (!d) return nietGevonden();
   tab = tab === 'achtergrond' ? 'achtergrond' : 'passages';
   let h = '<a class="terug" href="#/denkers">‹ Denkers</a>' +
-    '<div class="denkerkop"><h1 class="titel">' + esc(d.naam) + '</h1>' +
-    '<div class="jaren">' + esc(d.jaren) + (d.gestorven || d.geboren == null ? '' : ' – heden') + ' · ' + esc(GROEP[d.groep].naam) + '</div>' +
-    '<p class="kort">' + esc(d.kort) + '</p></div>' +
+    '<div class="denkerkop">' + portret(d, 'boog', true) + '<div><h1 class="titel">' + esc(d.naam) + '</h1>' +
+    '<div class="jaren">' + esc(d.jaren) + (d.gestorven || d.geboren == null ? '' : ' – heden') + ' · ' + esc(GROEP[d.groep].naam) + '</div></div>' +
+    bijschrift(d) + '<p class="kort">' + esc(d.kort) + '</p></div>' +
     '<div class="wissel"><a href="#/denker/' + d.id + '" class="' + (tab === 'passages' ? 'aan' : '') + '">Passages</a>' +
     '<a href="#/denker/' + d.id + '/achtergrond" class="' + (tab === 'achtergrond' ? 'aan' : '') + '">Achtergrond</a></div>';
 
@@ -616,6 +715,8 @@ function schermOver() {
     Object.keys(STATUS).map((k) => '<div class="idee"><b><span class="status ' + k + '"><i></i>' + STATUS[k][0] + '</span> · ' + tel[k] + '</b><span>' + STATUS[k][1] + '</span></div>').join('') + '</div>' +
     '<div class="blok"><h3>Vertaald, niet geciteerd</h3><p>Alles staat hier in het Nederlands. Waar een denker in een andere taal schreef, is de vertaling van Claude, gemaakt naar de bron die bij de passage staat. Dat is een werkvertaling: goed om te lezen en te zoeken, niet om letterlijk aan te halen. De zin waaruit vertaald is staat onder “Bron en herkomst”.</p>' +
     '<p>Wil je een passage gebruiken in een stuk of een toespraak, pak dan de gepubliceerde vertaling erbij.</p></div>' +
+    '<div class="blok"><h3>Portretten</h3><p>De portretten komen van Wikimedia Commons en zijn vrij te gebruiken: publiek domein of een open licentie. Bij elke denker staat wie het maakte en onder welke licentie. Ze zijn hier in één warme toon gezet, zodat marmer, olieverf en foto bij elkaar passen.</p>' +
+    '<p>Wie geen vrij portret heeft, krijgt een beginletter. Van ' + D.denkers.filter((d) => !d.portret).length + ' denkers is dat zo.</p></div>' +
     '<div class="blok"><h3>Achtergrond</h3><p>De teksten over leven en kernideeën van een denker zijn door Claude geschreven. Ze zijn bedoeld als wegwijzer, niet als bron.</p></div>' +
     '<p class="klein">Denkwerk, versie ' + esc(VERSIE) + '</p>';
 }
@@ -688,10 +789,21 @@ function teken(houScroll) {
   if (klapknop && [...scherm.querySelectorAll('details.klap')].every((x) => x.open)) klapknop.textContent = 'Alles dichtklappen';
   document.querySelectorAll('.onder a').forEach((a) => a.classList.toggle('aan', a.dataset.tab === tab));
   if (delen[0] !== 'zoek' && document.activeElement !== zoekveld) zoekveld.value = '';
+  // Wat al in de cache zat, is geladen voordat de luisteraar het zag.
+  scherm.querySelectorAll('.portret img').forEach((img) => { if (img.complete && img.naturalWidth) img.classList.add('geladen'); });
   window.scrollTo(0, houScroll ? y : 0);
 }
 
 window.addEventListener('hashchange', () => teken(false));
+
+// Een portret verschijnt zacht zodra het binnen is, in plaats van regel voor
+// regel van boven naar beneden. 'load' borrelt niet op, vandaar 'true'.
+scherm.addEventListener('load', (e) => {
+  if (e.target.tagName === 'IMG') e.target.classList.add('geladen');
+}, true);
+scherm.addEventListener('error', (e) => {
+  if (e.target.tagName === 'IMG') e.target.closest('.portret').style.visibility = 'hidden';
+}, true);
 
 // Zoeken terwijl je typt. Het adres verandert mee zonder een stap in de
 // geschiedenis toe te voegen: anders moet je twintig keer op terug drukken om
